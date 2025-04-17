@@ -33,7 +33,7 @@ Os dados trabalhados aqui estão em uma constante. Eles devem ser adaptados para
 
 Dentro de Template/ deixei 4 arquivos: o de checkout, de sucesso, de pagamento pendente e de erro. Adapte conforme sua necessidade.
 
-Caso queira, adapte a view para gravar em banco as informações de pagamento etc.... neste exemplo não faço isso.
+Caso queira, adapte a view para gravar em banco as informações de pagamento etc.... neste exemplo não faço isso. Outo ponto é que pode ser interessante deixar suas access_key em variáveis de ambiente.
 
 É importante redigitar todas as informações do formulário para simular aprovação do mercado pago.
 
