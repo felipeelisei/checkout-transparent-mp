@@ -39,7 +39,7 @@ Caso queira, adapte a view para gravar em banco as informações de pagamento et
 
 TELAS DO SISTEMA:
 
-![image](https://github.com/user-attachments/assets/abc3ab94-0782-47bb-8a61-57bd5224e1e5)
+![image](https://github.com/user-attachments/assets/291dcb91-1245-44ba-a132-4d0a2d34d2ee)
 
 ![image](https://github.com/user-attachments/assets/6e45d214-b4cd-49f3-9e51-3fe1db9fa83f)
 
