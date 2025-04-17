@@ -13,7 +13,7 @@ De qualquer forma, vou deixar no template um modelo que funciona bem.
 Esses cartões não geram cobrança e nem aparecem no seu painel do MP como transações realizadas.
 
 1) PRIMEIRO PASSO:
-   Baixar repositório para seu local de dev
+   Baixar repositório para seu local de dev e criar sua venv.
 
 2) SEGUNDO PASSO:
    Instalar dependência: pip install mercadopago (como é só uma, não gerei requirements.txt)
