@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout Transparente</title>
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .spinner {
+            margin-left: 10px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        .alert {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Pagamento - Plano Premium</h1>
+    
+    <div class="alert alert-info">
+        <strong>Instruções para teste (suprimir futuramente):</strong><br>
+        - Cartão: 4509 9535 6623 3704 (Visa)<br>
+        - Segurança: 123<br>
+        - Validade: Qualquer data futura<br>
+        - <strong>Nome do titular: APRO</strong> (importante para aprovar)<br>
+        - CPF: 12345678909
+        - MESMO QUE JÁ ESTEJA NO PLACEHOLDER, REDIGITE AS INFORMAÇÔES. RETIRE O VALUE DO INPUT EM PRODUÇÃO
+    </div>
+
+    <form id="form-checkout">
+        <div class="form-group">
+            <label for="form-checkout__cardholderName">Nome do Titular *</label>
+            <input type="text" id="form-checkout__cardholderName" placeholder="APRO" value="APRO" required />
+            <small style="color: #6c757d; display: block; margin-top: 5px;">Use 'APRO' para simular pagamento aprovado</small>
+        </div>
+
+        <div class="form-group">
+            <label for="form-checkout__email">E-mail</label>
+            <input type="email" id="form-checkout__email" value="comprador@example.com"/>
+        </div>
+
+        <div class="form-group">
+            <label for="form-checkout__cardNumber">Número do Cartão</label>
+            <input type="text" id="form-checkout__cardNumber" placeholder="4509 9535 6623 3704" />
+        </div>
+
+        <div class="form-group">
+            <label for="form-checkout__expirationDate">Validade (MM/AA)</label>
+            <input type="text" id="form-checkout__expirationDate" placeholder="12/30" />
+        </div>
+
+        <div class="form-group">
+            <label for="form-checkout__securityCode">Código de Segurança</label>
+            <input type="text" id="form-checkout__securityCode" placeholder="123" />
+        </div>
+
+        <div class="form-group">
+            <label for="form-checkout__docType">Tipo de Documento</label>
+            <select id="form-checkout__docType">
+                <option value="CPF">CPF</option>
+                <option value="CNPJ">CNPJ</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="form-checkout__docNumber">Número do Documento</label>
+            <input type="text" id="form-checkout__docNumber" placeholder="12345678909" value="12345678909" />
+        </div>
+
+        <div class="form-group">
+            <label for="form-checkout__installments">Parcelas</label>
+            <select id="form-checkout__installments"></select>
+        </div>
+
+        <div class="form-group">
+            <label for="form-checkout__issuer">Emissor do Cartão</label>
+            <select id="form-checkout__issuer"></select>
+        </div>
+
+        <input type="hidden" id="form-checkout__paymentMethodId" />
+
+        <button type="submit" id="form-checkout__submit">
+            <span id="button-text">Pagar</span>
+            <span class="spinner" id="spinner" style="display: none;"></span>
+        </button>
+    </form>
+
+    <div id="message-box" class="message"></div>
+
+    <script>
+        const mp = new MercadoPago("{{ public_key }}", {
+            locale: 'pt-BR'
+        });
+
+        const spinner = document.getElementById("spinner");
+        const buttonText = document.getElementById("button-text");
+        const button = document.getElementById("form-checkout__submit");
+        const messageBox = document.getElementById("message-box");
+
+        const cardForm = mp.cardForm({
+            amount: "299.90",
+            autoMount: true,
+            form: {
+                id: "form-checkout",
+                cardholderName: { id: "form-checkout__cardholderName" },
+                email: { id: "form-checkout__email" },
+                cardNumber: { id: "form-checkout__cardNumber" },
+                expirationDate: { id: "form-checkout__expirationDate" },
+                securityCode: { id: "form-checkout__securityCode" },
+                installments: { id: "form-checkout__installments" },
+                docType: { id: "form-checkout__docType" },
+                docNumber: { id: "form-checkout__docNumber" },
+                paymentMethodId: { id: "form-checkout__paymentMethodId" },
+                issuer: { id: "form-checkout__issuer" },
+            },
+            callbacks: {
+                onFormMounted: error => {
+                    if (error) return console.warn("Erro ao montar o formulário:", error);
+                    console.log("Formulário montado com sucesso");
+                },
+                onFormChange: (state, field) => {
+                    console.log("Campo alterado:", field);
+                },
+                onSubmit: event => {
+                    event.preventDefault();
+                    
+                    // Verifica se o nome do titular está preenchido
+                    const cardholderName = document.getElementById("form-checkout__cardholderName").value;
+                    if (!cardholderName || cardholderName.trim() === "") {
+                        showMessage("O nome do titular do cartão é obrigatório", "error");
+                        showLoading(false);
+                        return;
+                    }
+                    
+                    console.log("Formulário enviado!");
+                    showLoading(true);
+                    clearMessage();
+
+                    const formData = cardForm.getCardFormData();
+                    console.log("Dados do Formulário:", formData);
+                    
+                    fetch("/processar-pagamento/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            token: formData.token,
+                            payment_method_id: formData.paymentMethodId,
+                            issuer_id: formData.issuerId,
+                            email: document.getElementById("form-checkout__email").value,
+                            doc_type: document.getElementById("form-checkout__docType").value,
+                            doc_number: document.getElementById("form-checkout__docNumber").value,
+                            installments: document.getElementById("form-checkout__installments").value || 1,
+                            amount: "29.90",
+                            cardholder_name: document.getElementById("form-checkout__cardholderName").value
+                        }),
+                    })
+                    .then(res => res.json())
+                    .then(response => {
+                        showLoading(false);
+                        console.log("Resposta do processamento:", response);
+                        
+                        if (response.status === "approved") {
+                            showMessage("Pagamento aprovado com sucesso!", "success");
+                            setTimeout(() => {
+                                window.location.href = response.redirect_url || "/checkout/sucesso/";
+                            }, 1500);
+                        } else if (response.status === "in_process" || response.status === "pending") {
+                            showMessage("Pagamento em análise. Você será notificado por e-mail.", "success");
+                            setTimeout(() => {
+                                window.location.href = response.redirect_url || "/checkout/pendente/";
+                            }, 1500);
+                        } else {
+                            // Tratamento de erro específico
+                            let errorMessage = "Pagamento recusado. ";
+                            
+                            if (response.status_detail === "cc_rejected_other_reason") {
+                                errorMessage += "Use 'APRO' como nome do titular para simular pagamento aprovado.";
+                            } else if (response.status_detail === "cc_rejected_insufficient_amount") {
+                                errorMessage += "Fundos insuficientes.";
+                            } else if (response.status_detail === "cc_rejected_invalid_data") {
+                                errorMessage += "Verifique os dados do cartão.";
+                            } else if (response.error) {
+                                errorMessage += response.error;
+                            }
+                            
+                            showMessage(errorMessage, "error");
+                        }
+                    })
+                    .catch(error => {
+                        showLoading(false);
+                        console.error("Erro no pagamento:", error);
+                        showMessage("Erro ao processar o pagamento. Tente novamente mais tarde.", "error");
+                    });
+                }
+            }
+        });
+
+        function showLoading(loading) {
+            if (loading) {
+                button.disabled = true;
+                spinner.style.display = "inline-block";
+                buttonText.textContent = "Processando...";
+            } else {
+                button.disabled = false;
+                spinner.style.display = "none";
+                buttonText.textContent = "Pagar";
+            }
+        }
+
+        function showMessage(text, type) {
+            messageBox.textContent = text;
+            messageBox.className = `message ${type}`;
+            messageBox.style.display = "block";
+        }
+
+        function clearMessage() {
+            messageBox.textContent = "";
+            messageBox.style.display = "none";
+        }
+    </script>
+</body>
+</html>
