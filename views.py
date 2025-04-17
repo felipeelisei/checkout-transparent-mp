@@ -6,7 +6,7 @@ import mercadopago
 
 
 def checkout_transparente_view(request):
-    sdk = mercadopago.SDK("TEST-4940595994402592-041609-db55849b7c20f0c1c5152da97e65f10c-79998909") # ambiente de teste
+    sdk = mercadopago.SDK("SUBSTITUIR_PELA_SUA_ACCESS_KEY")
     preference_data = {
         "items": [
             {
@@ -37,7 +37,7 @@ def checkout_transparente_view(request):
     # Passa a preferência para o template
     return render(request, 'checkout_transparente.html', {
         'preference_id': preference['id'],
-        'public_key': 'TEST-4f524748-c551-422a-aa34-bc24380991bb',  # ambiente de teste
+        'public_key': 'SUBSTITUIR_PELA_SUA_PUBLIC_KEY',
     })
 
 
@@ -49,7 +49,7 @@ def processar_pagamento(request):
             data = json.loads(request.body)
             print("Dados processados:", data)
 
-            sdk = mercadopago.SDK("TEST-4940595994402592-041609-db55849b7c20f0c1c5152da97e65f10c-79998909")
+            sdk = mercadopago.SDK("SUBSTITUIR_PELA_SUA_ACCESS_KEY")
 
             cardholder_name = data.get("cardholder_name", "APRO")
             
